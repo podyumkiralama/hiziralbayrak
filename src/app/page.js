@@ -11,7 +11,7 @@ import {
   getYearReference,
 } from "@/lib/payroll";
 
-const exampleHeaders = [["PERSONEL", "MAAS"], ["Ali Yilmaz", "50000"], ["Ayse Kaya", "42000"]];
+const exampleHeaders = [["PERSONEL", "MAAS"], ["Ali Yilmaz", "50.000"], ["Ayse Kaya", "42.000"]];
 
 function formatMoney(value) {
   return new Intl.NumberFormat("tr-TR", {
@@ -263,6 +263,15 @@ export default function HomePage() {
                     Kidem ve ihbar cikis tarihine gore otomatik yil bulur. Issizlik maasinda yil
                     secimi manuel kalir.
                   </p>
+                </div>
+                <div className="rounded-2xl border border-amber-300/20 bg-amber-100/10 p-4">
+                  <div className="text-sm font-semibold text-amber-100">Uyari</div>
+                  <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
+                    <li>- Hesaplamalarda Turk Lirasi esas alinmistir.</li>
+                    <li>- Hesaplanan tutarlar bilgi amacli olup, kesin bordro olarak gosterilemez.</li>
+                    <li>- Yapilan maas hesaplamalari ile ilgili olarak kesin bordro islemlerinde uzman veya danisman bilgisine basvurulmasini tavsiye ederiz.</li>
+                    <li>- Hesaplama farkliliklarindan kaynakli olusabilecek hata ve eksikliklerden Hizir Albayrak sorumlu tutulamaz.</li>
+                  </ul>
                 </div>
               </div>
             </aside>

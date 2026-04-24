@@ -72,6 +72,18 @@ function round2(value) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
+function applyNumberFormat(sheet, columns, startRow, endRow, format = "#,##0.00") {
+  for (let row = startRow; row <= endRow; row += 1) {
+    for (const column of columns) {
+      const cellRef = `${column}${row}`;
+      const cell = sheet[cellRef];
+      if (cell && typeof cell.v === "number") {
+        cell.z = format;
+      }
+    }
+  }
+}
+
 export function roundCurrency(value) {
   return round2(value ?? 0);
 }
@@ -260,6 +272,11 @@ export function buildResultWorkbook(personnel, mode) {
 
   const summarySheet = XLSX.utils.aoa_to_sheet(outputRows);
   const detailSheet = XLSX.utils.aoa_to_sheet(detailRows);
+
+  const summaryNumericColumns = ["B", ...MONTHS.map((_, index) => String.fromCharCode(67 + index)), "O"];
+  const detailNumericColumns = ["C", "D", "E", "F"];
+  applyNumberFormat(summarySheet, summaryNumericColumns, 5, outputRows.length);
+  applyNumberFormat(detailSheet, detailNumericColumns, 2, detailRows.length);
 
   summarySheet["!cols"] = [
     { wch: 24 },
