@@ -11,13 +11,25 @@ import {
   getYearReference,
 } from "@/lib/payroll";
 
-const exampleHeaders = [["personel", "maas"], ["Ali Yilmaz", "50000"], ["Ayse Kaya", "42000"]];
+const exampleHeaders = [["PERSONEL", "MAAS"], ["Ali Yilmaz", "50000"], ["Ayse Kaya", "42000"]];
 
 function formatMoney(value) {
   return new Intl.NumberFormat("tr-TR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value || 0);
+}
+
+function normalizeNumericInput(value) {
+  return String(value ?? "").replace(/[^\d]/g, "");
+}
+
+function formatNumericInput(value) {
+  const normalized = normalizeNumericInput(value);
+  if (!normalized) return "";
+  return new Intl.NumberFormat("tr-TR", {
+    maximumFractionDigits: 0,
+  }).format(Number(normalized));
 }
 
 function ResultCard({ title, rows }) {
@@ -43,20 +55,20 @@ export default function HomePage() {
   const [success, setSuccess] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const [giydirilmisBrut, setGiydirilmisBrut] = useState("50000");
-  const [kidemGiris, setKidemGiris] = useState("2020-01-01");
-  const [kidemCikis, setKidemCikis] = useState("2025-04-23");
+  const [giydirilmisBrut, setGiydirilmisBrut] = useState("0");
+  const [kidemGiris, setKidemGiris] = useState("");
+  const [kidemCikis, setKidemCikis] = useState("");
 
-  const [ihbarGiris, setIhbarGiris] = useState("2020-01-01");
-  const [ihbarCikis, setIhbarCikis] = useState("2025-04-23");
-  const [ihbarCumulative, setIhbarCumulative] = useState("150000");
+  const [ihbarGiris, setIhbarGiris] = useState("");
+  const [ihbarCikis, setIhbarCikis] = useState("");
+  const [ihbarCumulative, setIhbarCumulative] = useState("0");
 
-  const [issizlikYear, setIssizlikYear] = useState(2026);
-  const [issizlikAy1, setIssizlikAy1] = useState("50000");
-  const [issizlikAy2, setIssizlikAy2] = useState("50000");
-  const [issizlikAy3, setIssizlikAy3] = useState("50000");
-  const [issizlikAy4, setIssizlikAy4] = useState("50000");
-  const [issizlikPrim, setIssizlikPrim] = useState("900");
+  const [issizlikYear, setIssizlikYear] = useState("");
+  const [issizlikAy1, setIssizlikAy1] = useState("");
+  const [issizlikAy2, setIssizlikAy2] = useState("");
+  const [issizlikAy3, setIssizlikAy3] = useState("");
+  const [issizlikAy4, setIssizlikAy4] = useState("");
+  const [issizlikPrim, setIssizlikPrim] = useState("");
 
   const kidemService = useMemo(
     () => calculateServiceFromDates(kidemGiris, kidemCikis),
@@ -271,12 +283,19 @@ export default function HomePage() {
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
                   <label className="rounded-2xl border border-slate-200 bg-slate-50 p-4 md:col-span-2">
                     <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Giydirilmis brut ucret</div>
-                    <input value={giydirilmisBrut} onChange={(event) => setGiydirilmisBrut(event.target.value)} className="mt-2 w-full bg-transparent text-slate-900 outline-none" />
+                    <input
+                      inputMode="numeric"
+                      value={formatNumericInput(giydirilmisBrut)}
+                      onChange={(event) => setGiydirilmisBrut(normalizeNumericInput(event.target.value))}
+                      className="mt-2 w-full bg-transparent text-slate-900 outline-none"
+                    />
                   </label>
                   <label className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ise giris tarihi</div>
                     <input
                       type="date"
+                      lang="tr"
+                      placeholder="GG.AA.YY"
                       value={kidemGiris}
                       onChange={(event) => {
                         setKidemGiris(event.target.value);
@@ -289,6 +308,8 @@ export default function HomePage() {
                     <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Isten cikis tarihi</div>
                     <input
                       type="date"
+                      lang="tr"
+                      placeholder="GG.AA.YY"
                       value={kidemCikis}
                       onChange={(event) => {
                         setKidemCikis(event.target.value);
@@ -299,9 +320,18 @@ export default function HomePage() {
                   </label>
                   <label className="rounded-2xl border border-slate-200 bg-slate-50 p-4 md:col-span-2">
                     <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Mevcut kumulatif vergi matrahi</div>
-                    <input value={ihbarCumulative} onChange={(event) => setIhbarCumulative(event.target.value)} className="mt-2 w-full bg-transparent text-slate-900 outline-none" />
+                    <input
+                      inputMode="numeric"
+                      value={formatNumericInput(ihbarCumulative)}
+                      onChange={(event) => setIhbarCumulative(normalizeNumericInput(event.target.value))}
+                      className="mt-2 w-full bg-transparent text-slate-900 outline-none"
+                    />
                   </label>
                 </div>
+
+                <p className="mt-3 text-xs text-slate-500">
+                  Tarih secimi takvimden yapilir. Format: GG.AA.YY
+                </p>
 
                 <div className="mt-6 grid gap-4">
                   <div className="rounded-3xl border border-amber-200 bg-amber-50/80 p-5">
@@ -379,9 +409,10 @@ export default function HomePage() {
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Yil</div>
                 <select
                   value={issizlikYear}
-                  onChange={(event) => setIssizlikYear(Number(event.target.value))}
+                  onChange={(event) => setIssizlikYear(event.target.value === "" ? "" : Number(event.target.value))}
                   className="mt-2 w-full bg-transparent text-slate-900 outline-none"
                 >
+                  <option value="">Secin</option>
                   {YEAR_OPTIONS.map((year) => (
                     <option key={year} value={year}>
                       {year}
@@ -391,23 +422,48 @@ export default function HomePage() {
               </label>
               <label className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">1. ay brut</div>
-                <input value={issizlikAy1} onChange={(event) => setIssizlikAy1(event.target.value)} className="mt-2 w-full bg-transparent text-slate-900 outline-none" />
+                <input
+                  inputMode="numeric"
+                  value={formatNumericInput(issizlikAy1)}
+                  onChange={(event) => setIssizlikAy1(normalizeNumericInput(event.target.value))}
+                  className="mt-2 w-full bg-transparent text-slate-900 outline-none"
+                />
               </label>
               <label className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">2. ay brut</div>
-                <input value={issizlikAy2} onChange={(event) => setIssizlikAy2(event.target.value)} className="mt-2 w-full bg-transparent text-slate-900 outline-none" />
+                <input
+                  inputMode="numeric"
+                  value={formatNumericInput(issizlikAy2)}
+                  onChange={(event) => setIssizlikAy2(normalizeNumericInput(event.target.value))}
+                  className="mt-2 w-full bg-transparent text-slate-900 outline-none"
+                />
               </label>
               <label className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">3. ay brut</div>
-                <input value={issizlikAy3} onChange={(event) => setIssizlikAy3(event.target.value)} className="mt-2 w-full bg-transparent text-slate-900 outline-none" />
+                <input
+                  inputMode="numeric"
+                  value={formatNumericInput(issizlikAy3)}
+                  onChange={(event) => setIssizlikAy3(normalizeNumericInput(event.target.value))}
+                  className="mt-2 w-full bg-transparent text-slate-900 outline-none"
+                />
               </label>
               <label className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">4. ay brut</div>
-                <input value={issizlikAy4} onChange={(event) => setIssizlikAy4(event.target.value)} className="mt-2 w-full bg-transparent text-slate-900 outline-none" />
+                <input
+                  inputMode="numeric"
+                  value={formatNumericInput(issizlikAy4)}
+                  onChange={(event) => setIssizlikAy4(normalizeNumericInput(event.target.value))}
+                  className="mt-2 w-full bg-transparent text-slate-900 outline-none"
+                />
               </label>
               <label className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Son 3 yildaki issizlik primi gunu</div>
-                <input value={issizlikPrim} onChange={(event) => setIssizlikPrim(event.target.value)} className="mt-2 w-full bg-transparent text-slate-900 outline-none" />
+                <input
+                  inputMode="numeric"
+                  value={formatNumericInput(issizlikPrim)}
+                  onChange={(event) => setIssizlikPrim(normalizeNumericInput(event.target.value))}
+                  className="mt-2 w-full bg-transparent text-slate-900 outline-none"
+                />
               </label>
             </div>
 
